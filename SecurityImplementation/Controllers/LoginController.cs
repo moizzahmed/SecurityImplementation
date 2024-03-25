@@ -37,27 +37,34 @@ namespace SecurityImplementation.Controllers
         [HttpPost("SQLInjection")]
         public IActionResult SQLInjection([FromBody] LoginRequestModel login)
         {
-
-            SqlDataReader dr = new DB().GetDataReader("Select Email,Name from UserInfo where Email='" + login.username + "' AND Password='" + login.password + "'");
-
-            if (dr != null)
+            try
             {
-                if (dr.HasRows)
-                {
-                    dr.Read();
-                    //Session["UserName"] = dr["Name"];
-                    //Response.Redirect("~/Home.aspx?Email=" + dr["Email"]);
-                }
-                else
-                {
-                    //lblMsg1.Text = "Check your credentials";
-                }
-            }
-            dr.Close(); dr.Dispose(); dr = null;
+                SqlDataReader dr = new DB().GetDataReader("Select PUSER_ID from USERS where PUSER_ID='" + login.username + "' AND Password='" + login.password + "'");
 
-            // Implement your login logic here
-            // For demonstration, let's assume a successful login
-            return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{login.username} is Logged in successfully, A-Symmetric Encryption/Decryption applied" });
+                if (dr != null)
+                {
+                    if (dr.HasRows)
+                    {
+                        dr.Read();
+                        //Session["UserName"] = dr["Name"];
+                        //Response.Redirect("~/Home.aspx?Email=" + dr["Email"]);
+                    }
+                    else
+                    {
+                        //lblMsg1.Text = "Check your credentials";
+                    }
+                }
+                dr.Close(); dr.Dispose(); dr = null;
+
+                // Implement your login logic here
+                // For demonstration, let's assume a successful login
+                return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{login.username} is Logged in successfully, A-Symmetric Encryption/Decryption applied" });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new LoginResponseModel { Status = "FAILED", Message = $"{ex.Message}" });
+            }
+
         }
     }
 }

@@ -12,7 +12,7 @@ namespace SecurityImplementation.Helper
 
         public DB()
         {
-            cn = new SqlConnection("Your Connection String Here");
+            cn = new SqlConnection("Server=172.16.1.132;Database=TRAINING;Uid=training_user;Pwd=Aksa@1234;");
         }
 
         private void Open()

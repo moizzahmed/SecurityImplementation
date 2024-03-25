@@ -29,6 +29,7 @@ namespace SecurityImplementation.Middleware
             string ep = urlPath.Split('/').Last();
 
             if (ep.ToLower().Contains("loginunencrypted")) return true;
+            if (ep.ToLower().Contains("sqlinjection")) return true;
 
             return false;
         }
