@@ -30,6 +30,8 @@ namespace SecurityImplementation.Middleware
 
             if (ep.ToLower().Contains("loginunencrypted")) return true;
             if (ep.ToLower().Contains("sqlinjection")) return true;
+            if (urlPath.ToLower().Contains("mapactivities")) return true;
+            if (urlPath.ToLower().Contains("password")) return true;
 
             return false;
         }
@@ -93,14 +95,10 @@ namespace SecurityImplementation.Middleware
 
                         if (encryptedRequest != null)
                         {
-                            if (urlPath.ToLower().Contains("rsa"))
-                                decryptedRequest = clsEncrypt_Decrypt.decryptRSA_Key(encryptedRequest.request, GlobalInfo._PEM_KEY);
-                            else if (urlPath.ToLower().Contains("aes"))
+                            if (urlPath.ToLower().Contains("aes"))
                                 decryptedRequest = clsEncrypt_Decrypt.Decrypt(encryptedRequest.request, "BgSFaPTML8gKaS55");
 
                             loginReq = JsonConvert.DeserializeObject<LoginRequestModel>(decryptedRequest);
-
-                            encryptionKeyFromRequest = loginReq?.randomString;
 
                             //Will be required when setting key inresponse                            
 
@@ -131,9 +129,7 @@ namespace SecurityImplementation.Middleware
                             body = JsonConvert.SerializeObject(responseObj);
                         }
 
-                        if (urlPath.ToLower().Contains("rsa"))
-                            decryptedRequest = clsEncrypt_Decrypt.Encrypt(body, encryptionKeyFromRequest);
-                        else if (urlPath.ToLower().Contains("aes"))
+                        if (urlPath.ToLower().Contains("aes"))
                             decryptedRequest = clsEncrypt_Decrypt.Encrypt(body, "BgSFaPTML8gKaS55");
 
                         ClientResp clientResponse = new ClientResp();

@@ -2,7 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using SecurityImplementation.Helper;
 using SecurityImplementation.Model;
-using System.Data.SqlClient;
+using MySql.Data;
+using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Asn1.Ocsp;
+using System.Data;
+using System.Diagnostics;
 
 namespace SecurityImplementation.Controllers
 {
@@ -13,58 +17,89 @@ namespace SecurityImplementation.Controllers
         [HttpPost("LoginUnEncrypted")]
         public IActionResult Login([FromBody] LoginRequestModel login)
         {
-            // Implement your login logic here
-            // For demonstration, let's assume a successful login
-            return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{login.username} is Logged in successfully, No Encryption/Decryption applied" });
+            LoginProcRespModel LoginResponse = new LoginProcRespModel();
+            LoginResponse = Procedure.LoginAuthenticate(login);
+
+            if (LoginResponse.Code == "0")
+            {
+                return
+                Ok(new LoginResponseModel
+                {
+                    Username = login.username,
+                    Status = "SUCCESS",
+                    UserID = Procedure.GetUserId(login.username),
+                    Message = $"{login.username} is Logged in successfully, No Encryption/Decryption applied"
+                });
+            }
+
+            return Ok(new LoginResponseModel { Status = "FAIL", Message = $"{login.username} FAILED TO LOGIN" });
+        }
+
+        [HttpGet("MapActivities/{userId}")]
+        public IActionResult Map([FromRoute] int userId)
+        {
+            if (userId.Equals(1))
+            {
+                return Ok(new { Activities = "1,2,3" });
+            }
+            else
+            {
+                return Ok(new { Activities = "1" });
+            }
         }
 
         [HttpPost("LoginEncryptedAES")]
         public IActionResult LoginEncryptedAES([FromBody] LoginRequestModel login)
         {
-            // Implement your login logic here
-            // For demonstration, let's assume a successful login
-            return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{login.username} is Logged in successfully, Symmetric Encryption/Decryption applied" });
-        }
+            LoginProcRespModel LoginResponse = new LoginProcRespModel();
+            LoginResponse = Procedure.LoginAuthenticate(login);
 
-        [HttpPost("LoginEncryptedRSA")]
-        public IActionResult LoginEncryptedRSA([FromBody] LoginRequestModel login)
-        {
-            // Implement your login logic here
-            // For demonstration, let's assume a successful login
-            return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{login.username} is Logged in successfully, A-Symmetric Encryption/Decryption applied" });
-        }
-
-        [HttpPost("SQLInjection")]
-        public IActionResult SQLInjection([FromBody] LoginRequestModel login)
-        {
-            try
+            if (LoginResponse.Code == "0")
             {
-                SqlDataReader dr = new DB().GetDataReader("Select PUSER_ID from USERS where PUSER_ID='" + login.username + "' AND Password='" + login.password + "'");
-
-                if (dr != null)
+                return
+                Ok(new LoginResponseModel
                 {
-                    if (dr.HasRows)
-                    {
-                        dr.Read();
-                        //Session["UserName"] = dr["Name"];
-                        //Response.Redirect("~/Home.aspx?Email=" + dr["Email"]);
-                    }
-                    else
-                    {
-                        //lblMsg1.Text = "Check your credentials";
-                    }
-                }
-                dr.Close(); dr.Dispose(); dr = null;
-
-                // Implement your login logic here
-                // For demonstration, let's assume a successful login
-                return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{login.username} is Logged in successfully, A-Symmetric Encryption/Decryption applied" });
+                    Username = login.username,
+                    Status = "SUCCESS",
+                    UserID = Procedure.GetUserId(login.username),
+                    Message = $"{login.username} is Logged in successfully, No Encryption/Decryption applied"
+                });
             }
-            catch (Exception ex)
+
+            return Ok(new LoginResponseModel { Status = "FAIL", Message = $"{login.username} FAILED TO LOGIN" });
+        }
+
+        [HttpPost("ResetPassword")]
+        public IActionResult ResetPassword([FromBody] LoginRequestModel user)
+        {
+            var newPassword = GenerateRandomPassword(8);
+
+            Procedure.RawQueryReset(user.username, newPassword);
+
+            return Ok(new { Username = user.username, NewPassword = newPassword });
+        }
+
+        [HttpPost("ChangePassword")]
+        public IActionResult ResetPassword([FromBody] ChangePasswordRequestModel user)
+        {
+            var resp = Procedure.RawQueryChange(user.username, user.password, user.newPassword, user.newPassword);
+
+            if (resp.Code == "00")
+                return Ok(new { Username = user.username, NewPassword = user.newPassword });
+            else
+                return Ok(new { Username = user.username, NewPassword = "" });
+        }
+
+        private string GenerateRandomPassword(int length)
+        {
+            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+            var random = new Random();
+            var chars = new char[length];
+            for (int i = 0; i < length; i++)
             {
-                return Ok(new LoginResponseModel { Status = "FAILED", Message = $"{ex.Message}" });
+                chars[i] = validChars[random.Next(validChars.Length)];
             }
-
+            return new string(chars);
         }
     }
 }

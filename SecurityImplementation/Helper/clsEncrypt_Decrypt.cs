@@ -1,6 +1,7 @@
 ﻿using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Utilities.IO.Pem;
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -84,29 +85,29 @@ namespace SecurityImplementation.Helper
             return Encoding.UTF8.GetString(Decrypt(encryptedBytes, GetRijndaelManaged(key)));
         }
 
-        public static string decryptRSA(string cipherText, string pemPath)
-        {
-            byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
-            PemReader pr = new PemReader(
-                (StreamReader)File.OpenText(pemPath)
-            );
-            AsymmetricCipherKeyPair keys = (AsymmetricCipherKeyPair)pr.ReadObject();
-            IAsymmetricBlockCipher cipher = new RsaEngine();
-            cipher.Init(false, keys.Private);
-            byte[] deciphered = cipher.ProcessBlock(cipherTextBytes, 0, cipherTextBytes.Length);
-            return Encoding.UTF8.GetString(deciphered);
-        }
-        public static string decryptRSA_Key(string cipherText, string pemKey)
-        {
-            byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
-            TextReader sr = new StringReader(pemKey);
-            PemReader pr = new PemReader(sr);
-            AsymmetricCipherKeyPair keys = (AsymmetricCipherKeyPair)pr.ReadObject();
-            IAsymmetricBlockCipher cipher = new RsaEngine();
-            cipher.Init(false, keys.Private);
-            byte[] deciphered = cipher.ProcessBlock(cipherTextBytes, 0, cipherTextBytes.Length);
-            return Encoding.UTF8.GetString(deciphered);
-        }
+        //public static string decryptRSA(string cipherText, string pemPath)
+        //{
+        //    byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
+        //    Org.BouncyCastle.OpenSsl.PemReader pr = new Org.BouncyCastle.OpenSsl.PemReader(
+        //        (StreamReader)File.OpenText(pemPath)
+        //    );
+        //    AsymmetricCipherKeyPair keys = (AsymmetricCipherKeyPair)pr.ReadObject();
+        //    IAsymmetricBlockCipher cipher = new RsaEngine();
+        //    cipher.Init(false, keys.Private);
+        //    byte[] deciphered = cipher.ProcessBlock(cipherTextBytes, 0, cipherTextBytes.Length);
+        //    return Encoding.UTF8.GetString(deciphered);
+        //}
+        //public static string decryptRSA_Key(string cipherText, string pemKey)
+        //{
+        //    byte[] cipherTextBytes = Convert.FromBase64String(cipherText);
+        //    TextReader sr = new StringReader(pemKey);
+        //    PemReader pr = new PemReader(sr);
+        //    AsymmetricCipherKeyPair keys = (AsymmetricCipherKeyPair)pr.ReadObject();
+        //    IAsymmetricBlockCipher cipher = new RsaEngine();
+        //    cipher.Init(false, keys.Private);
+        //    byte[] deciphered = cipher.ProcessBlock(cipherTextBytes, 0, cipherTextBytes.Length);
+        //    return Encoding.UTF8.GetString(deciphered);
+        //}
     }
 
 }

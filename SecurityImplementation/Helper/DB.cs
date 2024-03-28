@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
+using MySql.Data;
+using MySql.Data.MySqlClient;
 
 namespace SecurityImplementation.Helper
 {
     public class DB : IDisposable
     {
-        private SqlCommand cmd;
-        private SqlConnection cn;
+        private MySqlCommand cmd;
+        private MySqlConnection cn;
         private bool disposed = false;
 
         public DB()
         {
-            cn = new SqlConnection("Server=172.16.1.132;Database=TRAINING;Uid=training_user;Pwd=Aksa@1234;");
+            cn = new MySqlConnection("server=172.16.1.132;user=training_user;database=TRAINING;port=3306;password=Aksa@1234;");
         }
 
         private void Open()
@@ -31,13 +32,13 @@ namespace SecurityImplementation.Helper
             }
         }
 
-        public SqlDataReader GetDataReader(string strSql)
+        public MySqlDataReader GetDataReader(string strSql)
         {
-            SqlDataReader dr = null;
+            MySqlDataReader dr = null;
             try
             {
                 Open();
-                cmd = new SqlCommand(strSql, cn);
+                cmd = new MySqlCommand(strSql, cn);
                 dr = cmd.ExecuteReader(CommandBehavior.CloseConnection);
             }
             catch (Exception ex)
