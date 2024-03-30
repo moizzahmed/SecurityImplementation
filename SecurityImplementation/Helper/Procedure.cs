@@ -147,8 +147,6 @@ namespace SecurityImplementation.Helper
                 return 0;
             }
         }
-
-
         public static LoginProcRespModel RawQueryChange(string username, string oldPassword, string newPassword, string confirmPassword)
         {
             string connStr = "server=172.16.1.132;user=training_user;database=TRAINING;port=3306;password=Aksa@1234;";
@@ -183,6 +181,38 @@ namespace SecurityImplementation.Helper
                         // New password and confirm password do not match
                         return new LoginProcRespModel { Code = "02", Msg = "PASSWORD MISMATCH" };
                     }
+
+                    // Update to new password
+                    string updatePasswordSql = $"UPDATE USERS SET PASSWORD = '{newPassword}' WHERE USER_ID = {userId}";
+                    using (var cmd = new MySqlCommand(updatePasswordSql, conn))
+                    {
+                        int rowsAffected = cmd.ExecuteNonQuery();
+
+                        if (rowsAffected > 0)
+                        {
+                            return new LoginProcRespModel { Code = "00", Msg = "UPDATED" };
+                        }
+                        else
+                        {
+                            return new LoginProcRespModel { Code = "99", Msg = "UPDATE FAIL" };
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new LoginProcRespModel { Code = "99", Msg = "EXCEPTION: " + ex.Message };
+                }
+            }
+        }
+
+        public static LoginProcRespModel RawQueryChangeWithoutOldPassword(int userId, string newPassword)
+        {
+            string connStr = "server=172.16.1.132;user=training_user;database=TRAINING;port=3306;password=Aksa@1234;";
+            using (var conn = new MySqlConnection(connStr))
+            {
+                try
+                {
+                    conn.Open();
 
                     // Update to new password
                     string updatePasswordSql = $"UPDATE USERS SET PASSWORD = '{newPassword}' WHERE USER_ID = {userId}";

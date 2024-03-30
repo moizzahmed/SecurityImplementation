@@ -7,6 +7,7 @@ using MySql.Data.MySqlClient;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System.Data;
 using System.Diagnostics;
+using System.Text;
 
 namespace SecurityImplementation.Controllers
 {
@@ -28,6 +29,7 @@ namespace SecurityImplementation.Controllers
                     Username = login.username,
                     Status = "SUCCESS",
                     UserID = Procedure.GetUserId(login.username),
+                    CSRF = Convert.ToBase64String(Encoding.UTF8.GetBytes(login.username + "," + Convert.ToString(DateTime.Now))),
                     Message = $"{login.username} is Logged in successfully, No Encryption/Decryption applied"
                 });
             }
@@ -48,8 +50,26 @@ namespace SecurityImplementation.Controllers
             }
         }
 
+        [HttpPost("Logout")]
+        public IActionResult Logout([FromBody] LoginRequestModel user)
+        {
+            return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{user.username} LOGGED OUT SUCCESFULLY." });
+        }
+
+        [HttpPost("OTPVerify")]
+        public IActionResult OTPVerify([FromBody] LoginRequestModel user)
+        {
+            return Ok(new LoginResponseModel { Status = "SUCCESS", Message = $"{user.username} Your OTP is Verified." });
+        }
+
+        [HttpGet("Search/{query}")]
+        public IActionResult Search([FromQuery] string query)
+        {
+            return Ok();
+        }
+
         [HttpPost("LoginEncryptedAES")]
-        public IActionResult LoginEncryptedAES([FromBody] LoginRequestModel login)
+        public IActionResult LoginEncryptedAES(LoginRequestModel login)
         {
             LoginProcRespModel LoginResponse = new LoginProcRespModel();
             LoginResponse = Procedure.LoginAuthenticate(login);
@@ -62,6 +82,7 @@ namespace SecurityImplementation.Controllers
                     Username = login.username,
                     Status = "SUCCESS",
                     UserID = Procedure.GetUserId(login.username),
+                    CSRF = Convert.ToBase64String(Encoding.UTF8.GetBytes(login.username + "," + Convert.ToString(DateTime.Now))),
                     Message = $"{login.username} is Logged in successfully, No Encryption/Decryption applied"
                 });
             }
@@ -80,7 +101,7 @@ namespace SecurityImplementation.Controllers
         }
 
         [HttpPost("ChangePassword")]
-        public IActionResult ResetPassword([FromBody] ChangePasswordRequestModel user)
+        public IActionResult ChangePassword([FromBody] ChangePasswordRequestModel user)
         {
             var resp = Procedure.RawQueryChange(user.username, user.password, user.newPassword, user.newPassword);
 
@@ -88,6 +109,17 @@ namespace SecurityImplementation.Controllers
                 return Ok(new { Username = user.username, NewPassword = user.newPassword });
             else
                 return Ok(new { Username = user.username, NewPassword = "" });
+        }
+
+        [HttpPost("ChangePasswordWithoutOld")]
+        public IActionResult ChangePasswordWithoutOld([FromHeader(Name = "userId")] int userId, [FromBody] ChangePasswordRequestModel user)
+        {
+            var resp = Procedure.RawQueryChangeWithoutOldPassword(userId, user.newPassword);
+
+            if (resp.Code == "00")
+                return Ok(new { status = "SUCCESS" });
+            else
+                return Ok(new { status = "FAIL" });
         }
 
         private string GenerateRandomPassword(int length)

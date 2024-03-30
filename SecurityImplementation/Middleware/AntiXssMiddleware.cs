@@ -32,6 +32,8 @@ namespace SecurityImplementation.Middleware
             if (ep.ToLower().Contains("sqlinjection")) return true;
             if (urlPath.ToLower().Contains("mapactivities")) return true;
             if (urlPath.ToLower().Contains("password")) return true;
+            if (urlPath.ToLower().Contains("otp")) return true;
+            if (urlPath.ToLower().Contains("logout")) return true;
 
             return false;
         }

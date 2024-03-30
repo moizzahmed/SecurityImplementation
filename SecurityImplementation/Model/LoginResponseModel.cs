@@ -5,7 +5,7 @@
         public string Status { get; set; }
         public string Message { get; set; }
         public string Username { get; set; }
-        public string Activities { get; set; }
+        public string CSRF { get; set; }
         public int UserID { get; set; }
     }
 
